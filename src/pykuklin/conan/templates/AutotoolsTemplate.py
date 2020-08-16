@@ -3,8 +3,6 @@ from conans import ConanFile, AutoToolsBuildEnvironment
 
 class AutotoolsTemplate(ConanFile):
     # Example:
-    name = "hello"
-    version = "2.6.90"
     settings = "os", "compiler", "build_type", "arch"
     archive_format_file_suffix = ".tar.gz"
 
