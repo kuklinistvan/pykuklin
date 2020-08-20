@@ -1,5 +1,7 @@
-from conans import ConanFile, AutoToolsBuildEnvironment
+from pykuklin.downloader import get_downloader_available_in_current_environment
 
+from conans import ConanFile, AutoToolsBuildEnvironment
+from pathlib import Path
 
 class AutotoolsTemplate(ConanFile):
     # Example:
@@ -25,7 +27,7 @@ class AutotoolsTemplate(ConanFile):
         self.archive = self.topdir + self.archive_format_file_suffix
 
     def source(self):
-        self.run("wget \"{}\"".format(self.archive_url_prefix + self.archive))
+        get_downloader_available_in_current_environment()(self.archive_url_prefix + self.archive, Path(self.archive))
         self.run("tar xvf " + self.archive)
 
     def build(self):
