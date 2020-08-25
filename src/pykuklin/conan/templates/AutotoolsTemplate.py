@@ -1,7 +1,8 @@
 from pykuklin.downloader import get_downloader_available_in_current_environment
 
-from conans import ConanFile, AutoToolsBuildEnvironment
+from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 from pathlib import Path
+import os
 
 class AutotoolsTemplate(ConanFile):
     # Example:
@@ -23,8 +24,8 @@ class AutotoolsTemplate(ConanFile):
         """
         Auto configures topdir and archive file name.
         """
-        self.topdir = self.name + "-" + self.version
-        self.archive = self.topdir + self.archive_format_file_suffix
+        self.topdir = str(self.name) + "-" + str(self.version)
+        self.archive = str(self.topdir) + str(self.archive_format_file_suffix)
 
     def source(self):
         get_downloader_available_in_current_environment()(self.archive_url_prefix + self.archive, Path(self.archive))
@@ -34,13 +35,13 @@ class AutotoolsTemplate(ConanFile):
         print("Building in package() phase.")
 
     def package(self):
-        autotools = AutoToolsBuildEnvironment(self)
-        autotools.configure(configure_dir=self.topdir, args=self.configure_additional_args)
-        autotools.make(target=self.topdir)
-        autotools.install()
+        env_build = RunEnvironment(self)
+        with tools.environment_append(env_build.vars):
+            autotools = AutoToolsBuildEnvironment(self)
+            autotools.configure(configure_dir=self.topdir, args=self.configure_additional_args)
+            autotools.make(target=self.topdir)
+            autotools.install()
 
     def package_info(self):
         self.cpp_info.libs = [self.name]
 
-
-# class GnuHello(AutotoolsTemplate):
