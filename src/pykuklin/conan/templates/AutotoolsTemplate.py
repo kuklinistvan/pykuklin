@@ -14,10 +14,11 @@ class AutotoolsTemplate(ConanFile):
     topdir: str
     archive: str
 
-    configure_additional_args = None
+    configure_additional_args = ['--enable-static']
 
     def configure(self):
         self.setup_template_vars()
+
 
     def setup_template_vars(self):
         """
