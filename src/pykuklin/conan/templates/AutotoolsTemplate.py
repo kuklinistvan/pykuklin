@@ -3,6 +3,8 @@ from pykuklin.downloader import get_downloader_available_in_current_environment
 from conans import ConanFile, AutoToolsBuildEnvironment
 from pathlib import Path
 
+import ipdb
+
 class AutotoolsTemplate(ConanFile):
     # Example:
     settings = "os", "compiler", "build_type", "arch"
@@ -14,7 +16,9 @@ class AutotoolsTemplate(ConanFile):
     topdir: str
     archive: str
 
-    configure_additional_args = ['--enable-static']
+    def __init__(self, output, runner, display_name="", user=None, channel=None):
+        super().__init__(output, runner, display_name, user, channel)
+        self.configure_additional_args = ['--enable-static']
 
     def configure(self):
         self.setup_template_vars()
