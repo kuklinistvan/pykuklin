@@ -1,45 +1,12 @@
-
 from __future__ import annotations
 
-from contextlib import contextmanager
-from pathlib import Path
-import os
-from typing import List
+from .common import list_of_shell_args_to_str
 
+from typing import List
 import subprocess
 import sys
+from contextlib import contextmanager
 from multiprocessing import Process
-
-@contextmanager
-def working_directory(path: Path) -> None:
-    prev_dir = os.getcwd()
-    os.chdir(str(path))
-    try:
-        yield
-    finally:
-        os.chdir(prev_dir)
-
-
-def shell(cmd: List[str]) -> None:
-    print("[shell] " + list_of_shell_args_to_str(cmd))
-    assert 0 == subprocess.call(cmd)
-
-
-def list_of_shell_args_to_str(cmd: List[str]) -> str:
-    """
-    Converts ['echo', 'Hello world'] to 'echo "Hello world"'
-    """
-
-    args_with_apostroves_where_necessary = []
-
-    for e in cmd:
-        if e.find(' ') == -1:
-            args_with_apostroves_where_necessary.append(e)
-        else:
-            args_with_apostroves_where_necessary.append('"' + e + '"')
-
-    return " ".join(args_with_apostroves_where_necessary)
-
 
 
 class RemoteShell:
@@ -104,14 +71,12 @@ class NopasswdSSHConnection(RemoteShell):
 
     def _teardown(self):
         assert self.sshProcess
-        # print("Closing connection")
         self.sshProcess.stdin.write("exit\n")
         self.sshProcess.stdin.close()
 
     def _writeCmd(self, cmd: List[str]):
         assert self.sshProcess
         cmd_str = list_of_shell_args_to_str(cmd)
-        print("[ssh shell] " + cmd_str)
         self.sshProcess.stdin.write(cmd_str + "\n")
 
     def _readOutput(self):
