@@ -1,0 +1,9 @@
+CMakeCache.txt
+CMakeFiles
+*.cmake
+Makefile
+settings.json
+compile_commands.json
+
+**/*.a
+**/*.so
