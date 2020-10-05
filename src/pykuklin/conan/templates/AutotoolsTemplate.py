@@ -1,7 +1,10 @@
 from pykuklin.downloader import get_downloader_available_in_current_environment
+from pykuklin.conan.tools import ldflags2ld_library_path, build_env_vars_set
 
 from conans import ConanFile, AutoToolsBuildEnvironment
+from conans.tools import environment_append
 from pathlib import Path
+from contextlib import contextmanager
 
 import ipdb
 
@@ -38,14 +41,28 @@ class AutotoolsTemplate(ConanFile):
     def build(self):
         print("Building in package() phase.")
 
-    def package(self):
+    def package(self):       
         autotools = AutoToolsBuildEnvironment(self)
-        autotools.configure(configure_dir=self.topdir, args=self.configure_additional_args)
-        autotools.make(target=self.topdir)
-        autotools.install()
+
+        # with add_rpath_to_ldflags(autotools):
+        with build_env_vars_set(self, append_libdirs_to_rpath = True):
+            autotools.configure(configure_dir=self.topdir, args=self.configure_additional_args)
+            autotools.make(target=self.topdir)
+            autotools.install()
 
     def package_info(self):
         self.cpp_info.libs = [self.name]
+
+
+# @contextmanager
+# def add_rpath_to_ldflags(autotools_build_env: AutoToolsBuildEnvironment) -> None:
+#     env = autotools_build_env.vars
+
+#     library_dirs_commasep = ldflags2ld_library_path(env['LDFLAGS'])
+#     env['LDFLAGS'] = env['LDFLAGS'] + ' -Wl,--rpath=' + library_dirs_commasep
+
+#     with environment_append(env):
+#         yield
 
 
 # class GnuHello(AutotoolsTemplate):
