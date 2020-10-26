@@ -8,9 +8,10 @@ from contextlib import contextmanager
 from typing import List
 
 import re
+import os
 
 @contextmanager
-def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_libdirs_to_ld_library_path = False, append_libdirs_to_rpath = False):
+def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_libdirs_to_ld_library_path = False, append_libdirs_to_rpath = False, cxxflags_to_cflags=False):
     try:
         env = AutoToolsBuildEnvironment(conanfile).vars
         
@@ -31,6 +32,14 @@ def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_lib
 
         if append_libdirs_to_rpath:
             env['LDFLAGS'] = env['LDFLAGS'] + ' -Wl,--rpath=' + libpaths
+
+        if env['CPPFLAGS'] and env['CXXFLAGS']:
+            env['CXXFLAGS'] += ' '
+            env['CXXFLAGS'] += env['CPPFLAGS']
+            del env['CPPFLAGS']
+
+        if cxxflags_to_cflags:
+            env['CFLAGS'] = env['CXXFLAGS']
 
         print("Setting up environment:")
         pp.pprint(env)
