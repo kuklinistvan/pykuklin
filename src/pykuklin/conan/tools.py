@@ -7,11 +7,21 @@ pp = pprint.PrettyPrinter(indent=2)
 from contextlib import contextmanager
 from typing import List
 
+from typing import Dict
+
 import re
 import os
+from copy import deepcopy
 
 @contextmanager
-def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_libdirs_to_ld_library_path = False, append_libdirs_to_rpath = False, cxxflags_to_cflags=False):
+def build_env_vars_set(
+    conanfile: ConanFile,
+    libs_as_ldflags = False,
+    append_libdirs_to_ld_library_path = False,
+    append_libdirs_to_rpath = False,
+    cxxflags_to_cflags=False,
+    additional_vars_to_merge=None):
+
     try:
         env = AutoToolsBuildEnvironment(conanfile).vars
         
@@ -41,6 +51,9 @@ def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_lib
         if cxxflags_to_cflags:
             env['CFLAGS'] = env['CXXFLAGS']
 
+        if additional_vars_to_merge:
+            env = merge_flag_dictionaries(env, additional_vars_to_merge)
+        
         print("Setting up environment:")
         pp.pprint(env)
 
@@ -50,6 +63,40 @@ def build_env_vars_set(conanfile: ConanFile, libs_as_ldflags = False, append_lib
         print("Tearing down environment")
         # disgusting hack, but only the AutoToolsBuildEnvironment had the
         # routine to create this environment
+
+
+def merge_flag_dictionaries(a: Dict[str, str], b: Dict[str, str]) -> Dict[str, str]:
+    """
+        >>> a = {'CFLAGS': '-1'}
+        >>> b = {'CFLAGS': ' -2'}
+        >>> merge_flag_dictionaries(a, b)
+        {'CFLAGS': '-1 -2'}
+    """
+
+    a_copy = deepcopy(a)
+    b_copy = deepcopy(b)
+
+    merged_entries = {}
+
+    for i in a_copy.items():
+        for j in b_copy.items():
+            if i[0] == j[0]:
+                matching_entry_name = i[0]
+                content_first = i[1]
+                content_second = j[1]
+
+                merged_entries[matching_entry_name] = ' '.join([content_first, content_second])
+
+    for i in merged_entries.items():
+        del a_copy[i[0]]
+        del b_copy[i[0]]
+
+    a_left = a_copy
+    b_left = b_copy
+
+    return {**a_left, **b_left, **merged_entries}
+
+
 
 def ldflags2ld_library_path(ldflags: str) -> List[str]:
     """
