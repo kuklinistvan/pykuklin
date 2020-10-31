@@ -30,7 +30,8 @@ def build_env_vars_set(
             prev_ldflags = env['LDFLAGS']
             env['LDFLAGS'] = ' '.join([prev_ldflags, env['LIBS']])
 
-        env['LDFLAGS'] += ' -L' + with_apostroves_if_necessary(conanfile.package_folder + "/lib")
+        if hasattr(conanfile, 'package_folder'):
+            env['LDFLAGS'] += ' -L' + with_apostroves_if_necessary(conanfile.package_folder + "/lib")
 
         libpaths = ldflags2ld_library_path(env['LDFLAGS'])
 
